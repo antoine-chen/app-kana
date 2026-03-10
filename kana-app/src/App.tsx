@@ -1,16 +1,12 @@
 import { useState } from "react";
+import { Routes, Route, NavLink, Navigate } from "react-router-dom";
 import StudyMode from "./components/StudyMode";
 import QuizMode from "./components/QuizMode";
 import { kanaData } from "./data/kana";
 import "./App.css";
 
 function App() {
-    const [mode, setMode] = useState<"study" | "quiz">("study");
     const [script, setScript] = useState<"hiragana" | "katakana">("hiragana");
-
-    const switchMode = (newMode: "study" | "quiz") => {
-        setMode(newMode);
-    };
 
     return (
         <div>
@@ -19,18 +15,18 @@ function App() {
             </header>
 
             <nav className="tab-bar">
-                <button
-                    className={mode === "study" ? "tab-btn active" : "tab-btn"}
-                    onClick={() => switchMode("study")}
+                <NavLink
+                    to="/study"
+                    className={({ isActive }) => isActive ? "tab-btn active" : "tab-btn"}
                 >
                     Étude
-                </button>
-                <button
-                    className={mode === "quiz" ? "tab-btn active" : "tab-btn"}
-                    onClick={() => switchMode("quiz")}
+                </NavLink>
+                <NavLink
+                    to="/quiz"
+                    className={({ isActive }) => isActive ? "tab-btn active" : "tab-btn"}
                 >
                     Quiz
-                </button>
+                </NavLink>
             </nav>
 
             <main className="app-content">
@@ -53,8 +49,11 @@ function App() {
                     </label>
                 </div>
 
-                {mode === "study" && <StudyMode script={script} kanaData={kanaData} />}
-                {mode === "quiz" && <QuizMode script={script} kanaData={kanaData} />}
+                <Routes>
+                    <Route path="/" element={<Navigate to="/study" />} />
+                    <Route path="/study" element={<StudyMode script={script} kanaData={kanaData} />} />
+                    <Route path="/quiz" element={<QuizMode script={script} kanaData={kanaData} />} />
+                </Routes>
             </main>
         </div>
     );

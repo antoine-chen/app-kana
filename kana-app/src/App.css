@@ -234,3 +234,11 @@ body {
     background-color: #fdecea;
     color: var(--red);
 }
+
+/* ── Meilleur score ── */
+.quiz-best-score {
+    font-size: 0.78rem;
+    color: var(--gold);
+    letter-spacing: 0.08em;
+    margin-bottom: 2rem;
+}

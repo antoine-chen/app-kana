@@ -1,48 +1,56 @@
-import { useState } from "react";
+import { useRef, useEffect, useMemo } from "react";
 import type {Kana} from "../data/kana";
+import useQuiz from "../hooks/useQuiz";
+import useLocalStorage from "../hooks/useLocalStorage";
 
 interface QuizModeProps {
     script: "hiragana" | "katakana";
     kanaData: Kana[];
 }
 
+function shuffleArray(array: Kana[]) {
+    const shuffled = [...array];
+    for (let i = shuffled.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+    return shuffled;
+}
+
 function QuizMode({ script, kanaData }: QuizModeProps) {
-    const [currentIndex, setCurrentIndex] = useState(0);
-    const [userAnswer, setUserAnswer] = useState("");
-    const [score, setScore] = useState({ correct: 0, total: 0 });
-    const [feedback, setFeedback] = useState("");
+    // Exercice 4A : useMemo pour ne mélanger qu'une fois
+    const shuffledKana = useMemo(() => shuffleArray(kanaData), [kanaData]);
 
-    const currentKana = kanaData[currentIndex];
+    // Exercice 2 : toute la logique dans le hook
+    const { currentKana, userAnswer, setUserAnswer, score, feedback, isWaiting, handleSubmit } = useQuiz(shuffledKana);
+
+    // Exercice 3 : meilleur score persisté
+    const [bestScore, setBestScore] = useLocalStorage("kana-best-score", 0);
+
+    const percentage = score.total > 0 ? Math.round((score.correct / score.total) * 100) : 0;
+
+    if (percentage > bestScore && score.total > 0) {
+        setBestScore(percentage);
+    }
+
+    // Exercice 1 : auto-focus à chaque nouvelle question
+    const inputRef = useRef<HTMLInputElement>(null);
+
+    useEffect(() => {
+        inputRef.current?.focus();
+    }, [currentKana]);
+
     const displayChar = script === "hiragana" ? currentKana.hiragana : currentKana.katakana;
-    const isWaiting = feedback !== "";
-
-    function nextQuestion() {
-        const nextIndex = (currentIndex + 1) % kanaData.length;
-        setCurrentIndex(nextIndex);
-        setFeedback("");
-    }
-
-    function handleSubmit(e: React.FormEvent) {
-        e.preventDefault();
-
-        const isCorrect = userAnswer.toLowerCase().trim() === currentKana.romanji.toLowerCase();
-        const feedbackMessage = isCorrect ? "Correct !" : `Incorrect. C'était ${currentKana.romanji}`;
-
-        setScore({
-            correct: score.correct + (isCorrect ? 1 : 0),
-            total: score.total + 1,
-        });
-
-        setFeedback(feedbackMessage);
-        setUserAnswer("");
-
-        setTimeout(nextQuestion, 1500);
-    }
 
     return (
         <div className="quiz-container">
             <div className="quiz-score">
                 Score : {score.correct} / {score.total}
+                {score.total > 0 && <span> ({percentage}%)</span>}
+            </div>
+
+            <div className="quiz-best-score">
+                Meilleur score : {bestScore}%
             </div>
 
             <div className="quiz-character">
@@ -51,11 +59,11 @@ function QuizMode({ script, kanaData }: QuizModeProps) {
 
             <form className="quiz-form" onSubmit={handleSubmit}>
                 <input
+                    ref={inputRef}
                     type="text"
                     value={userAnswer}
                     onChange={(e) => setUserAnswer(e.target.value)}
                     placeholder="Romanji..."
-                    autoFocus
                     disabled={isWaiting}
                 />
                 <button type="submit" disabled={isWaiting}>
