@@ -15,7 +15,7 @@ function CharacterGrid({ characters, title, type }: CharacterGridProps) {
             <div className="character-grid">
                 {characters.map((kana) => (
                     <CharacterCard
-                        key={kana.romanji + kana[type]}
+                        key={kana.hiragana}
                         character={kana[type]}
                         romanji={kana.romanji}
                     />

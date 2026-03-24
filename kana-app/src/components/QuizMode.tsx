@@ -1,5 +1,5 @@
 import { useRef, useEffect, useMemo } from "react";
-import type {Kana} from "../data/kana";
+import type { Kana } from "../data/kana";
 import useQuiz from "../hooks/useQuiz";
 import useLocalStorage from "../hooks/useLocalStorage";
 
@@ -18,22 +18,20 @@ function shuffleArray(array: Kana[]) {
 }
 
 function QuizMode({ script, kanaData }: QuizModeProps) {
-    // Exercice 4A : useMemo pour ne mélanger qu'une fois
     const shuffledKana = useMemo(() => shuffleArray(kanaData), [kanaData]);
 
-    // Exercice 2 : toute la logique dans le hook
     const { currentKana, userAnswer, setUserAnswer, score, feedback, isWaiting, handleSubmit } = useQuiz(shuffledKana);
 
-    // Exercice 3 : meilleur score persisté
     const [bestScore, setBestScore] = useLocalStorage("kana-best-score", 0);
 
     const percentage = score.total > 0 ? Math.round((score.correct / score.total) * 100) : 0;
 
-    if (percentage > bestScore && score.total > 0) {
-        setBestScore(percentage);
-    }
+    useEffect(() => {
+        if (score.total > 0 && percentage > bestScore) {
+            setBestScore(percentage);
+        }
+    }, [percentage]);
 
-    // Exercice 1 : auto-focus à chaque nouvelle question
     const inputRef = useRef<HTMLInputElement>(null);
 
     useEffect(() => {
